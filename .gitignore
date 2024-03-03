@@ -1,0 +1,12 @@
+# SBT project
+target/
+project/target/
+project/project/
+.metals/
+.vscode/
+.bsp/
+metals.sbt
+.idea/
+*.iml
+*.ipr
+*.iws
