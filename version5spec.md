@@ -202,32 +202,30 @@
   To describe the layout of the frame body for the messages in Section 4, we
   define the following:
 
-    [int]             A 4 bytes integer
-    [long]            A 8 bytes integer
-    [byte]            A 1 byte unsigned integer
-    [short]           A 2 bytes unsigned integer
-    [string]          A [short] n, followed by n bytes representing an UTF-8
-                      string.
-    [long string]     An [int] n, followed by n bytes representing an UTF-8 string.
-    [uuid]            A 16 bytes long uuid.
-    [string list]     A [short] n, followed by n [string].
-    [bytes]           A [int] n, followed by n bytes if n >= 0. If n < 0,
-                      no byte should follow and the value represented is `null`.
-    [value]           A [int] n, followed by n bytes if n >= 0.
-                      If n == -1 no byte should follow and the value represented is `null`.
-                      If n == -2 no byte should follow and the value represented is
-                      `not set` not resulting in any change to the existing value.
-                      n < -2 is an invalid value and results in an error.
-    [short bytes]     A [short] n, followed by n bytes if n >= 0.
+  [byte]            A 1 byte unsigned integer
+  [short]           A 2 bytes unsigned integer
+  [string]          A [short] n, followed by n bytes representing an UTF-8
+                    string.
+  [long string]     An [int] n, followed by n bytes representing an UTF-8 string.
+  [uuid]            A 16 bytes long uuid.
+  [string list]     A [short] n, followed by n [string].
+  [bytes]           A [int] n, followed by n bytes if n >= 0. If n < 0,
+                    no byte should follow and the value represented is `null`.
+  [value]           A [int] n, followed by n bytes if n >= 0.
+                    If n == -1 no byte should follow and the value represented is `null`.
+                    If n == -2 no byte should follow and the value represented is
+                    `not set` not resulting in any change to the existing value.
+                    n < -2 is an invalid value and results in an error.
+  [short bytes]     A [short] n, followed by n bytes if n >= 0.
 
-    [unsigned vint]   An unsigned variable length integer. A vint is encoded with the most significant byte (MSB) first.
-                      The most significant byte will contains the information about how many extra bytes need to be read
-                      as well as the most significant bits of the integer.
-                      The number of extra bytes to read is encoded as 1 bits on the left side.
-                      For example, if we need to read 2 more bytes the first byte will start with 110
-                      (e.g. 256 000 will be encoded on 3 bytes as [110]00011 11101000 00000000)
-                      If the encoded integer is 8 bytes long the vint will be encoded on 9 bytes and the first
-                      byte will be: 11111111
+  [unsigned vint]   An unsigned variable length integer. A vint is encoded with the most significant byte (MSB) first.
+                    The most significant byte will contains the information about how many extra bytes need to be read
+                    as well as the most significant bits of the integer.
+                    The number of extra bytes to read is encoded as 1 bits on the left side.
+                    For example, if we need to read 2 more bytes the first byte will start with 110
+                    (e.g. 256 000 will be encoded on 3 bytes as [110]00011 11101000 00000000)
+                    If the encoded integer is 8 bytes long the vint will be encoded on 9 bytes and the first
+                    byte will be: 11111111
 
    [vint]             A signed variable length integer. This is encoded using zig-zag encoding and then sent
                       like an [unsigned vint]. Zig-zag encoding converts numbers as follows:
@@ -238,40 +236,40 @@
                       the arithemtic right shift operation (highest-order bit is replicated).
                       Decode with "(n >> 1) ^ -(n & 1)".
 
-    [option]          A pair of <id><value> where <id> is a [short] representing
-                      the option id and <value> depends on that option (and can be
-                      of size 0). The supported id (and the corresponding <value>)
-                      will be described when this is used.
-    [option list]     A [short] n, followed by n [option].
-    [inet]            An address (ip and port) to a node. It consists of one
-                      [byte] n, that represents the address size, followed by n
-                      [byte] representing the IP address (in practice n can only be
-                      either 4 (IPv4) or 16 (IPv6)), following by one [int]
-                      representing the port.
-    [inetaddr]        An IP address (without a port) to a node. It consists of one
-                      [byte] n, that represents the address size, followed by n
-                      [byte] representing the IP address.
-    [consistency]     A consistency level specification. This is a [short]
-                      representing a consistency level with the following
-                      correspondance:
-                        0x0000    ANY
-                        0x0001    ONE
-                        0x0002    TWO
-                        0x0003    THREE
-                        0x0004    QUORUM
-                        0x0005    ALL
-                        0x0006    LOCAL_QUORUM
-                        0x0007    EACH_QUORUM
-                        0x0008    SERIAL
-                        0x0009    LOCAL_SERIAL
-                        0x000A    LOCAL_ONE
+  `<option>`          A pair of `<id><value>` where `<id>` is a `[short]` representing
+                    the option id and `<value>` depends on that option (and can be
+                    of size 0). The supported id (and the corresponding `<value>`)
+                    will be described when this is used.
+  [option list]     A [short] n, followed by n [option].
+  [inet]            An address (ip and port) to a node. It consists of one
+                    [byte] n, that represents the address size, followed by n
+                    [byte] representing the IP address (in practice n can only be
+                    either 4 (IPv4) or 16 (IPv6)), following by one [int]
+                    representing the port.
+  [inetaddr]        An IP address (without a port) to a node. It consists of one
+                    [byte] n, that represents the address size, followed by n
+                    [byte] representing the IP address.
+  [consistency]     A consistency level specification. This is a [short]
+                    representing a consistency level with the following
+                    correspondance:
+                      0x0000    ANY
+                      0x0001    ONE
+                      0x0002    TWO
+                      0x0003    THREE
+                      0x0004    QUORUM
+                      0x0005    ALL
+                      0x0006    LOCAL_QUORUM
+                      0x0007    EACH_QUORUM
+                      0x0008    SERIAL
+                      0x0009    LOCAL_SERIAL
+                      0x000A    LOCAL_ONE
 
-    [string map]      A [short] n, followed by n pair <k><v> where <k> and <v>
-                      are [string].
-    [string multimap] A [short] n, followed by n pair <k><v> where <k> is a
-                      [string] and <v> is a [string list].
-    [bytes map]       A [short] n, followed by n pair <k><v> where <k> is a
-                      [string] and <v> is a [bytes].
+  [string map]      A [short] n, followed by n pair <k><v> where <k> and <v>
+                    are [string].
+  [string multimap] A [short] n, followed by n pair <k><v> where <k> is a
+                    [string] and <v> is a [string list].
+  [bytes map]       A [short] n, followed by n pair <k><v> where <k> is a
+                    [string] and <v> is a [bytes].
 
 ## 4. Messages
 
@@ -328,14 +326,14 @@
     <query><query_parameters>
   where <query> is a [long string] representing the query and
   <query_parameters> must be
-    <consistency><flags>[<n>[name_1]<value_1>...[name_n]<value_n>][<result_page_size>][<paging_state>][<serial_consistency>][<timestamp>][<keyspace>][<now_in_seconds>]
+   `<consistency><flags>[<n>[name_1]<value_1>...[name_n]<value_n>][<result_page_size>][<paging_state>][<serial_consistency>][<timestamp>][<keyspace>][<now_in_seconds>]`
   where:
-    - <consistency> is the [consistency] level for the operation.
-    - <flags> is a [int] whose bits define the options for this query and
+    - `<consistency>` is the [consistency] level for the operation.
+    - `<flags>` is a [int] whose bits define the options for this query and
       in particular influence what the remainder of the message contains.
       A flag is set if the bit corresponding to its `mask` is set. Supported
       flags are, given their mask:
-        0x0001: Values. If set, a [short] <n> followed by <n> [value]
+        0x0001: Values. If set, a [short] `<n>` followed by `<n>` [value]
                 values are provided. Those values are used for bound variables in
                 the query. Optionally, if the 0x40 flag is present, each value
                 will be preceded by a [string] name, representing the name of
@@ -1050,26 +1048,27 @@
   support paging. For other type of queries, the <result_page_size> value is
   ignored.
 
-  Note to client implementors:
-  - While <result_page_size> can be as low as 1, it will likely be detrimental
-    to performance to pick a value too low. A value below 100 is probably too
-    low for most use cases.
-  - Clients should not rely on the actual size of the result set returned to
-    decide if there are more results to fetch or not. Instead, they should always
-    check the Has_more_pages flag (unless they did not enable paging for the query
-    obviously). Clients should also not assert that no result will have more than
-    <result_page_size> results. While the current implementation always respects
-    the exact value of <result_page_size>, we reserve the right to return
-    slightly smaller or bigger pages in the future for performance reasons.
-  - The <paging_state> is specific to a protocol version and drivers should not
-    send a <paging_state> returned by a node using the protocol v3 to query a node
-    using the protocol v4 for instance.
+Note to client implementors:
+
+- While <result_page_size> can be as low as 1, it will likely be detrimental
+  to performance to pick a value too low. A value below 100 is probably too
+  low for most use cases.
+- Clients should not rely on the actual size of the result set returned to
+  decide if there are more results to fetch or not. Instead, they should always
+  check the Has_more_pages flag (unless they did not enable paging for the query
+  obviously). Clients should also not assert that no result will have more than
+  <result_page_size> results. While the current implementation always respects
+  the exact value of <result_page_size>, we reserve the right to return
+  slightly smaller or bigger pages in the future for performance reasons.
+- The `<paging_state>` is specific to a protocol version and drivers should not
+  send a <paging_state> returned by a node using the protocol v3 to query a node
+  using the protocol v4 for instance.
 
 ## 9. Error codes
 
-  Let us recall that an ERROR message is composed of <code><message>[...]
+  Let us recall that an ERROR message is composed of `<code><message>[...]`
   (see 4.2.1 for details). The supported error codes, as well as any additional
-  information the message may contain after the <message> are described below:
+  information the message may contain after the `<message>` are described below:
     0x0000    Server error: something unexpected happened. This indicates a
               server-side bug.
     0x000A    Protocol error: some client message triggered a protocol
@@ -1080,7 +1079,7 @@
               which may or may not include more detail in the accompanying
               error message.
     0x1000    Unavailable exception. The rest of the ERROR message body will be
-                <cl><required><alive>
+                `<cl><required><alive>`
               where:
                 <cl> is the [consistency] level of the query that triggered
                      the exception.
@@ -1097,7 +1096,7 @@
     0x1003    Truncate_error: error during a truncation error.
     0x1100    Write_timeout: Timeout exception during a write request. The rest
               of the ERROR message body will be
-                <cl><received><blockfor><writeType><contentions>
+                `<cl><received><blockfor><writeType><contentions>`
               where:
                 <cl> is the [consistency] level of the query having triggered
                      the exception.
@@ -1146,9 +1145,8 @@
                 <data_present> is a single byte. If its value is 0, it means
                                the replica that was asked for data has not
                                responded. Otherwise, the value is != 0.
-    0x1300    Read_failure: A non-timeout exception during a read request. The rest
-              of the ERROR message body will be
-                <cl><received><blockfor><reasonmap><data_present>
+    0x1300    Read_failure: A non-timeout exception during a read request. The rest of the ERROR message body will be
+                `<cl><received><blockfor><reasonmap><data_present>`
               where:
                 <cl> is the [consistency] level of the query having triggered
                      the exception.
@@ -1167,7 +1165,7 @@
                                responded. Otherwise, the value is != 0.
     0x1400    Function_failure: A (user defined) function failed during execution.
               The rest of the ERROR message body will be
-                <keyspace><function><arg_types>
+               `<keyspace><function><arg_types>`
               where:
                 <keyspace> is the keyspace [string] of the failed function
                 <function> is the name [string] of the failed function

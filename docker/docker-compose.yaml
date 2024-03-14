@@ -15,21 +15,39 @@ services:
   cassandra:
     image: cassandra:latest
     deploy:
-      replicas: 2
+      replicas: 1
       placement:
-        preferences:
-          - spread: node.labels.cassandra == true
-
         constraints:
-          - node.labels.cassandra == true
+          - node.hostname == thanos
     ports:
       - "9042:9042"
     networks:
-      - event-sourcing
+      - cassandra
     volumes:
       - cassandra-volume:/var/lib/cassandra
     environment:
-      JVM_OPTS: "-Xmx512m -Xms512m"
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra"
+      MAX_HEAP_SIZE: 512M
+      HEAP_NEWSIZE: 512M
+
+  # cassandra-node:
+  #   image: cassandra:latest
+  #   deploy:
+  #     replicas: 1
+  #     placement:
+  #       preferences:
+  #         - spread: node.labels.cassandra == true
+
+  #       constraints:
+  #         - node.labels.cassandra == true
+  #   networks:
+  #     - cassandra
+  #   volumes:
+  #     - cassandra-volume:/var/lib/cassandra
+  #   environment:
+  #     CASSANDRA_SEEDS: "cassandra"
+  #     MAX_HEAP_SIZE: 512M
+  #     HEAP_NEWSIZE: 512M
 
   # kafka:
   #   image: wurstmeister/kafka:latest
@@ -52,9 +70,10 @@ services:
   #     - kafka-logs:/kafka/logs
 
 networks:
-  event-sourcing:
-    driver: overlay
-
+  cassandra:
+    external: true
+    name: cassandra
+  
 volumes:
   cassandra-volume:
   kafka-volume:
