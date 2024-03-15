@@ -1,5 +1,6 @@
 package com.perikov.cassandra.protocol
 
+
 import scala.quoted.*
 
 extension (a: Any)

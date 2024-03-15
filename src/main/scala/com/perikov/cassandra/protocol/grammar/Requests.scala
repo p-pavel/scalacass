@@ -1,14 +1,23 @@
-package com.perikov.cassandra.protocol
+package com.perikov.cassandra.protocol.grammar
 
+import com.perikov.cassandra.protocol.*
+
+@dispatchBy[opcode]
 trait Requests:
-  def STARTUP(cqlVersion: Nothing, compression: Nothing): Any
+  type Self
+
+  @opcode(0x01)
+  def STARTUP(cqlVersion: Nothing, compression: Nothing): Self
 /**
   *  Asks the server to return which STARTUP options are supported. The body of an
   OPTIONS message should be empty and the server will respond with a SUPPORTED
   message.
   */  
-  def OPTIONS(): Any
-  def QUERY(query: Nothing, queryParams: Nothing): Any
+  @opcode(0x05)
+  def OPTIONS: Self
+  
+  @opcode(0x07)
+  def QUERY(query: Nothing, queryParams: Nothing): Self
   /**
     * The server will respond with a RESULT message with a `prepared` kind (0x0004,
   see Section 4.2.5).
@@ -17,7 +26,8 @@ trait Requests:
     * @param keyspace
     * @return
     */
-  def PREPARE(query: Nothing, keyspace: Option[Nothing]): Any
+  @opcode(0x09)
+  def PREPARE(query: Nothing, keyspace: Option[Nothing]): Self
   /**
     *  Executes a prepared query. The body of the message must be:
   `<id><result_metadata_id><query_parameters>`
@@ -31,7 +41,8 @@ trait Requests:
     * @param queryParameters has the exact same definition as in QUERY (see Section 4.1.4)
     * @return
     */
-  def EXECUTE(id: Nothing, resultMetadataId: Nothing, queryParameters: Nothing): Any
+  @opcode(0x0a)
+  def EXECUTE(id: Nothing, resultMetadataId: Nothing, queryParameters: Nothing): Self
   /**
     *  Register this connection to receive some types of events. The body of the
   message is a [string list] representing the event types to register for. See
@@ -48,11 +59,16 @@ trait Requests:
     * @param params
     * @return
     */
-  def REGISTER(params: Nothing): Any
-  def BATCH(params: Nothing): Any
+  @opcode(0x0b)
+  def REGISTER(params: Nothing): Self
+
+  @opcode(0x0d)
+  def BATCH(params: Nothing): Self
+
   /**
     * //  The response to a AUTH_RESPONSE is either a follow-up AUTH_CHALLENGE message,
     *  an AUTH_SUCCESS message or an ERROR message.
     */
-  def AUTH_RESPONSE(token: Nothing): Any
+  @opcode(0x10)
+  def AUTH_RESPONSE(token: Nothing): Self
 end Requests
