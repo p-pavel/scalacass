@@ -1,7 +1,6 @@
 package com.perikov.cassandra.protocol.grammar
 import com.perikov.cassandra.protocol.*
 
-
 @dispatchBy[errorCode]
 trait Errors extends BasicTypes:
   type Self
@@ -10,20 +9,20 @@ trait Errors extends BasicTypes:
     * bug.
     */
   @errorCode(0x0000)
-  def serverError: Self
+  def serverError: T
 
   /** Protocol error: some client message triggered a protocol violation (for
     * instance a QUERY message is sent before a STARTUP one has been sent).
     */
   @errorCode(0x000a)
-  def protocolError: Self
+  def protocolError: T
 
   /** Authentication error: authentication was required and failed. The possible
     * reason for failing depends on the authenticator in use, which may or may
     * not include more detail in the accompanying error message.
     */
   @errorCode(0x0100)
-  def authenticationError: Self
+  def authenticationError: T
 
   /** @param requestedCL
     *   the consistency level of the query that triggered the error
@@ -38,22 +37,22 @@ trait Errors extends BasicTypes:
       requestedCL: consistency,
       required: Int,
       alive: Int
-  ): Self
+  ): T
 
   /** Overloaded: the request cannot be processed because the coordinator node
     * is overloaded
     */
   @errorCode(0x1001)
-  def overloaded: Self
+  def overloaded: T
 
   /** the request was a read request but the coordinator node is bootstrapping
     */
   @errorCode(0x1002)
-  def isBootstrapping: Self
+  def isBootstrapping: T
 
   /** error during a truncation error. */
   @errorCode(0x1003)
-  def truncateError: Self
+  def truncateError: T
 
   /** @param cl
     *   level of the query having triggered the exception.
@@ -74,9 +73,9 @@ trait Errors extends BasicTypes:
       blockFor: int,
       writeType: writeType,
       contentions: Option[short]
-  ): Self
+  ): T
 
-  /** Read_timeout: Selfimeout exception during a read request.
+  /** Read_timeout: Timeout exception during a read request.
     *
     * @param cl
     *   is the consistency level of the query having triggered the exception.
@@ -98,7 +97,7 @@ trait Errors extends BasicTypes:
       received: int,
       blockFor: int,
       dataPresent: byte
-  ): Self
+  ): T
 
   /** A non-timeout exception during a read request
     *
@@ -123,7 +122,7 @@ trait Errors extends BasicTypes:
       blockFor: int,
       reasonMap: reasonMap,
       dataPresent: byte
-  ): Self
+  ): T
 
   /** A (user defined) function failed during execution.
     * @param keyspace
@@ -138,7 +137,7 @@ trait Errors extends BasicTypes:
       keyspace: string,
       function: string,
       argTypes: stringList
-  ): Self
+  ): T
 
   /** A non-timeout exception during a write request.
     *
@@ -161,11 +160,11 @@ trait Errors extends BasicTypes:
       blockFor: int,
       reasonMap: reasonMap,
       writeType: writeType
-  ): Self
+  ): T
 
   /** @todo not specified in docs */
   @errorCode(0x1600)
-  def CDC_WRITE_FAILURE: Self
+  def CDC_WRITE_FAILURE: T
 
   /** An exception occured due to contended Compare And Set write/update. The
     * CAS operation was only partially completed and the operation may or may
@@ -176,26 +175,26 @@ trait Errors extends BasicTypes:
     * @param blockFor
     */
   @errorCode(0x1700)
-  def CAS_WRITE_UNKNOWN(cl: consistency, received: int, blockFor: int): Self
+  def CAS_WRITE_UNKNOWN(cl: consistency, received: int, blockFor: int): T
 
   /** The submitted query has a syntax error.
     */
   @errorCode(0x2000)
-  def syntaxError: Self
+  def syntaxError: T
 
   /** The logged user doesn't have the right to perform the query.
     */
   @errorCode(0x2100)
-  def unauthorized: Self
+  def unauthorized: T
 
   /** The query is syntactically correct but invalid. */
   @errorCode(0x2200)
-  def invalid: Self
+  def invalid: T
 
   /** The query is invalid because of some configuration issue
     */
   @errorCode(0x2300)
-  def configError: Self
+  def configError: T
 
   /** The query attempted to create a keyspace or a table that was already
     * existing
@@ -209,13 +208,13 @@ trait Errors extends BasicTypes:
     *   string.
     */
   @errorCode(0x2400)
-  def alreadyExists(keyspace: string, table: string): Self
+  def alreadyExists(keyspace: string, table: string): T
 
   /** Can be thrown while a prepared statement tries to be executed if the
     * provided prepared statement ID is not known by this host. The rest of the
     * ERROR message body will be [short bytes] representing the unknown ID.
     */
   @errorCode(0x2500)
-  def unprepared(unknownId: shortBytes): Self
+  def unprepared(unknownId: shortBytes): T
 
 end Errors

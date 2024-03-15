@@ -1,7 +1,7 @@
 package com.perikov.cassandra.protocol.grammar
 
 
-trait BasicTypes:
+trait BasicTypes extends Any:
   type consistency
   type reasonMap
   type int
@@ -12,6 +12,7 @@ trait BasicTypes:
   type stringList
   type shortBytes
   type stringMultimap
+  type stringMap
   type bytes
   type inet
 

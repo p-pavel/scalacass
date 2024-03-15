@@ -39,10 +39,10 @@ object Proto:
   given buf: java.nio.ByteBuffer = Samples.headerByteBuffer()
   inline given String = "You're screwed"
   
-  @main def testSer            =
-    val a: Responses = null 
-    val t = 2.dispatchTo(a)
-    println(t)
+  // @main def testSer            =
+  //   val a: Responses = null 
+  //   val t = 2.dispatchTo(a)
+  //   println(t)
 
 trait MyFunc:
   def apply(a: Int, b: Float): Unit
