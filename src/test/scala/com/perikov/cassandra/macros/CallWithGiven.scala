@@ -9,16 +9,19 @@ class CallWithGiven extends munit.FunSuite:
     given a: Int = 42
     assertEquals(callWithGivens(Abc.f), Abc.f(a))
   }
+
   test("Inline function") {
     inline def f(x: Int): Int = x + 1
     given a: Int              = 42
     assertEquals(callWithGivens(f), f(a))
   }
+
   test("literal function") {
     given a: Int = 42
     assertEquals(callWithGivens((n: Int) => n + 1), 43)
 
   }
+
   test("function value") {
 
     val f: Function1[Int, Int] = Abc.f
@@ -28,9 +31,9 @@ class CallWithGiven extends munit.FunSuite:
 
   test("multi param") {
     def f(x: Int, y: Long) = x + y
-    given a: Int = 42
-    given b: Long = 1
-    assertEquals(callWithGivens(f), f(a,b))
+    given a: Int           = 42
+    given b: Long          = 1
+    assertEquals(callWithGivens(f), f(a, b))
 
   }
 
@@ -42,10 +45,5 @@ class CallWithGiven extends munit.FunSuite:
        printArgs(12)
     """)
 
-    assertNotEquals(
-      errs,
-      """|error: 12: 12 is not a function type
-       |    val errs = compileErrors(
-       |""".stripMargin
-    )
+    assertNotEquals(errs, "")
   }
