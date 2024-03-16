@@ -3,7 +3,7 @@ package com.perikov.cassandra.protocol.grammar
 import com.perikov.cassandra.protocol.*
 
 @dispatchByMethodName
-trait SchemaChangeData extends BasicTypes:
+trait SchemaChangeData extends Any, BasicTypes:
   type Self
 
   def KEYSPACE(keyspace: string): Self

@@ -16,7 +16,7 @@ import com.perikov.cassandra.protocol.*
   * first.
   */
 @dispatchByMethodName
-trait Events extends BasicTypes:
+trait Events extends Any,BasicTypes:
   type ChangeData
   type Self
 

@@ -12,14 +12,6 @@ trait Proto:
       rest: ByteBuffer
   ): Unit
 
-trait Opcodes:
-  
-  def SUPPORTED: Unit
-
-object Prims:
-  inline given readByte(using buf: ByteBuffer): Byte   = buf.get
-  inline given readShort(using buf: ByteBuffer): Short = buf.getShort
-  inline given readInt(using buf: ByteBuffer): Int     = buf.getInt
 
 object Proto:
   object Printer extends Proto:
@@ -35,14 +27,9 @@ object Proto:
         s"verion: $verion, flags: $flags, stream: $stream, opcode: $opcode, length: $length, buf: $buf"
       )
 
-  import Prims.given
   given buf: java.nio.ByteBuffer = Samples.headerByteBuffer()
   inline given String = "You're screwed"
   
-  // @main def testSer            =
-  //   val a: Responses = null 
-  //   val t = 2.dispatchTo(a)
-  //   println(t)
 
 trait MyFunc:
   def apply(a: Int, b: Float): Unit

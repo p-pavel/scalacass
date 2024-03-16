@@ -44,13 +44,6 @@ type Snoc  = Any {
 
 type fixSnoc[A] = snoc { type B = Self }
 
-trait T:
-  type A
-  type B
-  type C
-  def f: A
-  def g: B => Unit
-  def h: C => C
 
 @main def testInfo = println(traitInfo[Snoc])
 

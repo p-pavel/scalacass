@@ -5,7 +5,7 @@ import com.perikov.cassandra.protocol.*
 /** Defines the possible content of a [[RESULT]] message.
   */
 @dispatchBy[resultCode]
-trait Results extends BasicTypes:
+trait Results extends Any, BasicTypes:
   type Self
 
   /** results carrying no information. */
