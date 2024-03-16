@@ -34,16 +34,9 @@ class CallWithGiven extends munit.FunSuite:
     given a: Int           = 42
     given b: Long          = 1
     assertEquals(callWithGivens(f), f(a, b))
-
   }
 
-  test("non function") {
-
-    val errs = compileErrors("""
-       val f: Function1[Int, Int] = Abc.f
-       given a: Int = 42
-       printArgs(12)
-    """)
-
-    assertNotEquals(errs, "")
+  test("no params") {
+    def f = 42
+    assertEquals(callWithGivens(f), f)
   }
