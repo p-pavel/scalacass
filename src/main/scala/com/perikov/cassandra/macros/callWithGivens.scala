@@ -2,6 +2,13 @@ package com.perikov.cassandra.macros
 
 import scala.quoted.*
 
+/**
+  * Having something resembling function generate a call to 
+  * it with parameters derived from givens
+  *
+  * @param t function or method
+  * @return the result of function call
+  */
 transparent inline def callWithGivens(t: Any) = ${ callWithGivensImpl('t) }
 
 private def callWithGivensImpl(func: Expr[Any])(using Quotes): Expr[Any] =
