@@ -17,7 +17,7 @@ import scala.quoted.*
   */
 transparent inline def callWithGivens(t: Any) = ${ callWithGivensImpl('t) }
 
-private def callWithGivensImpl(func: Expr[Any])(using Quotes): Expr[Any] =
+private [macros] def callWithGivensImpl(func: Expr[Any])(using Quotes): Expr[Any] =
   import quotes.*
   import quotes.reflect.*
 
