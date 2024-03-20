@@ -2,6 +2,11 @@ package com.perikov.cassandra.macros
 
 import scala.quoted.*
 import com.perikov.cassandra.protocol.*
+
+// TODO: I hate the amount of code here and duplication of concepts.
+// Probably use something like term deriving on annotation type to 
+// find the implementation of generator
+
 transparent inline def generateDispatch[T](e: Any, interpreter: T) = ${
   traitAnnotationsImpl[T]('e, 'interpreter)
 }
