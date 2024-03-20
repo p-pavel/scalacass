@@ -1,7 +1,7 @@
 package com.perikov.cassandra.macros
 import com.perikov.cassandra.protocol.*
 
-class TraitAnnotatations extends munit.FunSuite:
+class DispatchGeneration extends munit.FunSuite:
   test("no annotations") {
     val errs = compileErrors("""
       trait T:
@@ -43,4 +43,4 @@ class TraitAnnotatations extends munit.FunSuite:
     assertEquals(dispatcherByMethodName("abc", t), 42)
     assertEquals(dispatcherByMethodName("cde", t), 3.141f)
   }
-end TraitAnnotatations
+end DispatchGeneration
