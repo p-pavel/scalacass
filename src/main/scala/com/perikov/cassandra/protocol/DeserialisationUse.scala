@@ -43,10 +43,3 @@ object Q:
 
   val myFunc: MyFunc             = (a: Int, b: Float) => println(s"Int: $a, Float: $b")
   val ff: (Int, Float) => String = (a: Int, b: Float) => s"Int: $a, Float: $b"
-
-  @main def test =
-    inline given Int   = b.getInt
-    inline given Float = b.getFloat
-    // println(callWithGivens(myFunc))
-    // println(callWithGivens(ff) )
-    println(callWithGivens((a: Int, b: Float) => b + a))

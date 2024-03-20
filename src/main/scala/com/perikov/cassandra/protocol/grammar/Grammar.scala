@@ -1,7 +1,5 @@
 package com.perikov.cassandra.protocol.grammar
 import java.nio.ByteBuffer
-import com.perikov.cassandra.protocol.callWithGivens
-import com.perikov.cassandra.protocol.dispatchTo
 
 trait Grammar extends Any, BasicTypes:
   self =>
@@ -61,9 +59,9 @@ trait Grammar extends Any, BasicTypes:
     // header.dispatchTo(responses)
     ???
 
-  def parse(using b: ByteBuffer): Self =
-    val hdr = callWithGivens(header)
-    message(hdr)
+  // def parse(using b: ByteBuffer): Self =
+  //   val hdr = callWithGivens(header)
+  //   message(hdr)
 
 end Grammar
 
