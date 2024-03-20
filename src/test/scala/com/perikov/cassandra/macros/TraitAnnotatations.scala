@@ -32,4 +32,15 @@ class TraitAnnotatations extends munit.FunSuite:
     assertEquals(generateDispatch(10, t), 42)
   }
 
+  test("dispatch by name") {
+    @dispatchByMethodName
+    trait T:
+      def abc: Int = 42
+      def cde: Float = 3.141f
+
+    val t = new T {}
+
+    assertEquals(dispatcherByMethodName("abc", t), 42)
+    assertEquals(dispatcherByMethodName("cde", t), 3.141f)
+  }
 end TraitAnnotatations

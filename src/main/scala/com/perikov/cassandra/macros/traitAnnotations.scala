@@ -2,24 +2,58 @@ package com.perikov.cassandra.macros
 
 import scala.quoted.*
 import com.perikov.cassandra.protocol.*
-inline def generateDispatch[T](e: Any, interpreter: T)  = ${
+transparent inline def generateDispatch[T](e: Any, interpreter: T) = ${
   traitAnnotationsImpl[T]('e, 'interpreter)
 }
 
-def traitAnnotationsImpl[T: Type](e: Expr[Any], interpreter: Expr[T])(using Quotes) =
-  new AnnotationUtils {}.generateDispatch(e, interpreter)
-trait AnnotationUtils(using Quotes):
+inline def dispatcherByMethodName[T](s: String, interpreter: T) = ${
+  dispatchByMethodNameImpl[T]('s, 'interpreter)
+}
+
+def dispatchByMethodNameImpl[T: Type](s: Expr[String], interpreter: Expr[T])(
+    using Quotes
+) =
+  DispatchGenerator(s, interpreter).generateDispatchByMethodName
+
+def traitAnnotationsImpl[T: Type](e: Expr[Any], interpreter: Expr[T])(using
+    Quotes
+) =
+  DispatchGenerator(e, interpreter).generateDispatch
+
+private class DispatchGenerator[T: Type](
+    selector: Expr[Any],
+    val interpreter: Expr[T]
+)(using val q: Quotes):
   import quotes.reflect.*
 
-  def generateDispatch[T: Type](e: Expr[Any], interpreter: Expr[T]): Expr[Any] =
-    val interpreterTerm = interpreter.asTerm
-    val typeReprOfTargetTrait = TypeRepr.of[T].dealias
+  val interpreterTerm            = interpreter.asTerm
+  val typeReprOfTargetTrait      = TypeRepr.of[T].dealias
+  val targetTraitSymbol          = typeReprOfTargetTrait.typeSymbol
+  def annotationsWith(s: Symbol) =
+    targetTraitSymbol.annotations.filter(_.tpe.typeSymbol == s)
 
-    val targetTraitSymbol = typeReprOfTargetTrait.typeSymbol
-    val dispatchBySymbol  = TypeRepr.of[dispatchBy].typeSymbol
+  def generateDispatchByMethodName =
+    val dispatchBySymbol = TypeRepr.of[dispatchByMethodName].typeSymbol
+    val annotations      = annotationsWith(dispatchBySymbol)
+    if annotations.length != 1 then
+      report.warning(
+        s"Expected exactly one annotation of type dispatchByMethodName, found ${annotations.length}"
+      )
+    val declaredMethods  = targetTraitSymbol.declaredMethods
+    val cases            = declaredMethods.map(m =>
+      CaseDef(
+        Literal(StringConstant(m.name)),
+        None,
+        callWithGivensImpl(interpreterTerm.select(m).asExpr).asTerm
+      )
+    )
+    Match(selector.asTerm, cases).asExpr
+  end generateDispatchByMethodName
 
-    val annotations: List[Term] =
-      targetTraitSymbol.annotations.filter(_.tpe.typeSymbol == dispatchBySymbol)
+  def generateDispatch: Expr[Any] =
+
+    val dispatchBySymbol        = TypeRepr.of[dispatchBy].typeSymbol
+    val annotations: List[Term] = annotationsWith(dispatchBySymbol)
 
     if annotations.length != 1 then
       report.errorAndAbort(
@@ -44,6 +78,7 @@ trait AnnotationUtils(using Quotes):
         if annots.isEmpty then None
         else Option(method, extractAnnotationValue(annots.head))
       }.flatten
+
     val cases = annotatedMethods.map((methodSymbol, pattern) =>
       CaseDef(
         pattern,
@@ -53,5 +88,7 @@ trait AnnotationUtils(using Quotes):
         ).asTerm
       )
     )
-    Match(e.asTerm, cases).asExpr
-    // Expr.ofList(annotatedMethods.map(_.toString).map(Expr(_)).toList)
+    Match(selector.asTerm, cases).asExpr
+  end generateDispatch
+
+end DispatchGenerator
