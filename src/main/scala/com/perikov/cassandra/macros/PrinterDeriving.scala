@@ -10,8 +10,9 @@ transparent inline def derivePrinting[T]: T = ${ derivePrintingImpl[T] }
 def derivePrintingImpl[T: Type](using Quotes) =
   import quotes.reflect.*
 
+  val traitTypeRepr = TypeRepr.of[T]
   val traitTypeTree = TypeTree.of[T]
-  val traitMethods  = traitTypeTree.symbol.declaredMethods
+  val traitMethods  = traitTypeRepr.typeSymbol.declaredMethods
   val parents       = List(TypeTree.of[Object], traitTypeTree)
 
   def decls(cls: Symbol) =
@@ -24,7 +25,7 @@ def derivePrintingImpl[T: Type](using Quotes) =
         val params = paramClauses.head.params
         val mtype  = MethodType(params.map(_.name))(
           _ => params.collect { case ValDef(name, tpt, _) => tpt.tpe },
-          _ => resType.tpe
+          _ => TypeRepr.of[String] // resType.tpe
         )
         Symbol.newMethod(cls, name, mtype)
     }
@@ -56,6 +57,4 @@ def derivePrintingImpl[T: Type](using Quotes) =
 
   val block = Block(List(classDef), newCls)
 
-  report.info(block.show(using Printer.TreeAnsiCode))
-  // '{()}
   block.asExprOf[T]
