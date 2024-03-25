@@ -3,6 +3,10 @@ package com.perikov.cassandra.macros
 import scala.quoted.*
 import com.perikov.cassandra.protocol.*
 
+extension (expr: Any)
+  transparent inline def dispatchTo[T](interpreter: T) = 
+    generateDispatch(expr, interpreter)
+
 // TODO: I hate the amount of code here and duplication of concepts.
 // Probably use something like term deriving on annotation type to 
 // find the implementation of generator
@@ -62,7 +66,7 @@ private class DispatchGenerator[T: Type](
 
     if annotations.length != 1 then
       report.errorAndAbort(
-        s"Expected exactly one annotation of type dispatchBy, found ${annotations.length}"
+        s"Expected exactly one annotation of type `dispatchBy` for $targetTraitSymbol, found ${annotations.length}"
       )
 
     val symbolToDispatchBy = annotations.head.tpe.typeArgs.head.typeSymbol
@@ -89,7 +93,12 @@ private class DispatchGenerator[T: Type](
         pattern,
         None,
         callWithGivensImpl(
-          interpreterTerm.select(methodSymbol).asExpr
+          try
+            interpreterTerm.select(methodSymbol).etaExpand(Symbol.spliceOwner).asExpr
+          catch case e: Exception =>
+            report.errorAndAbort(
+              s"Failed to select method ${methodSymbol.name} from interpreter: ${interpreterTerm}:\n${e.getMessage()}"
+            )
         ).asTerm
       )
     )

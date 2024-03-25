@@ -12,7 +12,7 @@ class DispatchGeneration extends munit.FunSuite:
     """)
     assert(
       errs.contains(
-        "Expected exactly one annotation of type dispatchBy, found 0"
+        "Expected exactly one annotation of type `dispatchBy`"
       )
     )
   }
@@ -35,7 +35,7 @@ class DispatchGeneration extends munit.FunSuite:
   test("dispatch by name") {
     @dispatchByMethodName
     trait T:
-      def abc: Int = 42
+      def abc: Int   = 42
       def cde: Float = 3.141f
 
     val t = new T {}
@@ -43,4 +43,5 @@ class DispatchGeneration extends munit.FunSuite:
     assertEquals(dispatcherByMethodName("abc", t), 42)
     assertEquals(dispatcherByMethodName("cde", t), 3.141f)
   }
+
 end DispatchGeneration
