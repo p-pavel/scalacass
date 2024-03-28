@@ -10,13 +10,14 @@ transparent inline def derivePrinting[T]: T = ${ derivePrintingImpl[T] }
 def derivePrintingImpl[T: Type](using Quotes) =
   import quotes.reflect.*
 
-  val traitTypeRepr = TypeRepr.of[T].dealias
-  val traitTypeTree = TypeTree.of[T]
-  val traitMethods  = traitTypeRepr.typeSymbol.methodMembers
-  val parents       = List(TypeTree.of[Object], traitTypeTree)
+  val traitTypeRepr       = TypeRepr.of[T].dealias
+  val traitTypeTree       = TypeTree.of[T]
+  val allTraitMethods     = traitTypeRepr.typeSymbol.methodMembers
+  val printerClassParents = List(TypeTree.of[Object], traitTypeTree)
+  
 
-  def decls(cls: Symbol) =
-    traitMethods.map(s => traitTypeRepr.select(s).termSymbol.tree).collect {
+  def methodsToOverride(cls: Symbol) =
+    allTraitMethods.map(s => traitTypeRepr.select(s).termSymbol.tree).collect {
       case d @ DefDef(name, paramClauses, resType, None)
           if d.symbol.flags.is(Flags.Deferred) =>
         if paramClauses.size > 1 then
@@ -27,45 +28,49 @@ def derivePrintingImpl[T: Type](using Quotes) =
         val mtype  = MethodType(params.map(_.name))(
           m =>
             params.collect { case ValDef(name, tpt, _) =>
-              val memberType = traitTypeRepr.memberType(tpt.symbol)
-              // report.info(s"Param $name: memberType ${tpt.tpe.show(using Printer.TypeReprStructure)}")
-              tpt.tpe.dealias //TODO: do i need changeOwner?
+              val sym = tpt.symbol
+              val memType = traitTypeRepr.select(sym)
+              println(s"======== ${sym.isAbstractType}, ValDef $name: ${memType.show(using Printer.TypeReprStructure)}")
+              if sym.isAbstractType then memType else tpt.tpe
+              // memType
             },
-          _ => 
-            report.info(s"res type tree: ${resType.show(using Printer.TreeStructure)}")
-            val effectiveResType = resType
-            val dealiasedResType = resType.tpe.dealias
-            val memberType = traitTypeRepr.memberType(effectiveResType.symbol)
-            val selectType = traitTypeRepr.select(effectiveResType.symbol)
+          _ =>
+            report.info(
+              s"res type t: ${resType.tpe.show(using Printer.TypeReprStructure)}"
+            )
+            val effectiveResType    = resType
+            val dealiasedResType    = resType.tpe.dealias
+            val memberType          = traitTypeRepr.memberType(effectiveResType.symbol)
+            val selectType          = traitTypeRepr.select(effectiveResType.symbol)
             val dealiasedSelectType = selectType.dealiasKeepOpaques
             report.info(s"""
             | trait: ${traitTypeRepr.show(using Printer.TypeReprAnsiCode)}
-            | effectiveResType: ${effectiveResType.show(using Printer.TreeAnsiCode)}
-            | dealiasedResType: ${dealiasedResType.show(using Printer.TypeReprAnsiCode)}
+            | effectiveResType: ${effectiveResType.show(using
+                            Printer.TreeAnsiCode
+                          )}
+            | dealiasedResType: ${dealiasedResType.show(using
+                            Printer.TypeReprAnsiCode
+                          )}
             | selectType: ${selectType.show(using Printer.TypeReprAnsiCode)}
-            | dealiasedSelectType: ${dealiasedSelectType.show(using Printer.TypeReprAnsiCode)}
+            | dealiasedSelectType: ${dealiasedSelectType.show(using
+                            Printer.TypeReprAnsiCode
+                          )}
             | memberType: ${memberType.show(using Printer.TypeReprAnsiCode)}
             |""".stripMargin)
-            
-            val tt = traitTypeRepr.select(d.symbol)
-            val isMethod = tt.termSymbol.isDefDef
-            // report.info(s"isMethod: $isMethod, effectiveResType: ${effectiveResType.show(using Printer.TypeReprAnsiCode)}")
 
             dealiasedSelectType
-            // effectiveResType.tpe.dealias
-            // dealiasedResType
         )
         Symbol.newMethod(cls, name, mtype, Flags.Override, Symbol.noSymbol)
     }
 
-  val classSymbol = Symbol.newClass(
+  val printerClassSymbol         = Symbol.newClass(
     Symbol.spliceOwner,
     "Printer",
-    parents.map(_.tpe),
-    decls,
+    printerClassParents.map(_.tpe),
+    methodsToOverride,
     None
   )
-  def definitions = classSymbol.declaredMethods.map(sym =>
+  def overridenMethodDefinitions = printerClassSymbol.declaredMethods.map(sym =>
     DefDef(
       sym,
       args => {
@@ -76,17 +81,24 @@ def derivePrintingImpl[T: Type](using Quotes) =
     )
   )
 
-  val classDef = ClassDef(classSymbol, parents, definitions)
-  report.info(classDef.show(using Printer.TreeAnsiCode))
+  val printerClassDef = ClassDef(
+    printerClassSymbol,
+    printerClassParents,
+    overridenMethodDefinitions
+  )
 
-  val newCls = Typed(
+  val classInstantiation = Typed(
     Apply(
-      Select(New(TypeIdent(classSymbol)), classSymbol.primaryConstructor),
+      Select(
+        New(TypeIdent(printerClassSymbol)),
+        printerClassSymbol.primaryConstructor
+      ),
       Nil
     ),
     traitTypeTree
   )
 
-  val block = Block(List(classDef), newCls)
+  val block = Block(List(printerClassDef), classInstantiation)
 
   block.asExprOf[T]
+end derivePrintingImpl

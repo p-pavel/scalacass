@@ -21,12 +21,12 @@ class PrinterDeriving extends munit.FunSuite:
   //   assertEquals(a.f1(10, "s"), "f1(10, s)")
   // }
 
-  // test("tagless final") {
-  //   trait Q[T]:
-  //     def f1(g: Int, a: String): T
+  test("tagless final") {
+    trait Q[T]:
+      def f1(g: Int, a: String): T
 
-  //   val a: Q[String] = derivePrinting[Q[String]]
-  // }
+    val a: Q[String] = derivePrinting[Q[String]]
+  }
 
   // test("type aliases") {
   //   type Q = Abc
@@ -34,16 +34,16 @@ class PrinterDeriving extends munit.FunSuite:
   //   assertEquals(t.f1(10, "s"), "f1(10, s)")
   // }
 
-  // test("type members") {
-  //   trait Q: 
-  //     type Self 
-  //     def f(n: Int): Self
+  test("type members") {
+    trait Q: 
+      type Self 
+      def f(n: Int): Self
 
-  //   trait S extends Q:
-  //     type Self = String
-  //   val a = derivePrinting[S]
-  //   assertEquals(a.f(10), "f(10)")
-  // }
+    trait S extends Q:
+      type Self = String
+    val a = derivePrinting[S]
+    assertEquals(a.f(10), "f(10)")
+  }
 
   test("abstract parameters and return types") {
     trait Abstract:
