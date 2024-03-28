@@ -1,6 +1,7 @@
 package com.perikov.cassandra.protocol.grammar
 
 import com.perikov.cassandra.protocol.*
+import com.perikov.cassandra.macros.dispatchBy
 
 /** Defines the possible content of a [[RESULT]] message.
   */

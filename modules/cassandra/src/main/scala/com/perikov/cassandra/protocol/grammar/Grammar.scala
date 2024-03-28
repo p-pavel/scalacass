@@ -62,7 +62,7 @@ trait Grammar extends  Any, BasicTypes:
 
   def message(header: Header)(using rest: ByteBuffer): Self =
     // summon[bytes]
-    header.dispatchTo(responses)
+    // header.dispatchTo(responses)
     ???
 
   // def parse(using b: ByteBuffer): Self =

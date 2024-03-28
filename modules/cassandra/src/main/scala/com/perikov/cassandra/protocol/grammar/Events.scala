@@ -1,5 +1,6 @@
 package com.perikov.cassandra.protocol.grammar
 import com.perikov.cassandra.protocol.*
+import com.perikov.cassandra.macros.dispatchByMethodName
 
 /** An event pushed by the server. A client will only receive events for the
   * types it has REGISTERed to. The body of an EVENT message will start with a

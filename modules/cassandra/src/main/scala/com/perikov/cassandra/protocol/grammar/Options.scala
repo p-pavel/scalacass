@@ -1,5 +1,6 @@
 package com.perikov.cassandra.protocol.grammar
 import com.perikov.cassandra.protocol.*
+import com.perikov.cassandra.macros.dispatchByMethodName
 
 @dispatchByMethodName
 trait Options extends BasicTypes:

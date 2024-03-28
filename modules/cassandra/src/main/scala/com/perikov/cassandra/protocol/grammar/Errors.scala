@@ -1,5 +1,7 @@
 package com.perikov.cassandra.protocol.grammar
-import com.perikov.cassandra.protocol.*
+import com.perikov.cassandra as cas
+import cas.protocol.*
+import cas.macros.dispatchBy
 
 @dispatchBy[errorCode]
 trait Errors extends Any, BasicTypes:

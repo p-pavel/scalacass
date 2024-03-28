@@ -1,6 +1,7 @@
 package com.perikov.cassandra.protocol
 
+import scala.annotation.StaticAnnotation as A
 
-class opcode(code: Byte)    extends StaticAnnotation
-class errorCode(code: Int)  extends StaticAnnotation
-class resultCode(code: Int) extends StaticAnnotation
+class opcode(code: Byte)    extends A
+class errorCode(code: Int)  extends A
+class resultCode(code: Int) extends A
