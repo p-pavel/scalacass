@@ -30,33 +30,32 @@ def derivePrintingImpl[T: Type](using Quotes) =
             params.collect { case ValDef(name, tpt, _) =>
               val sym = tpt.symbol
               val memType = traitTypeRepr.select(sym)
-              println(s"======== ${sym.isAbstractType}, ValDef $name: ${memType.show(using Printer.TypeReprStructure)}")
+              // println(s"======== ${sym.isAbstractType}, ValDef $name: ${memType.show(using Printer.TypeReprStructure)}")
               if sym.isAbstractType then memType else tpt.tpe
-              // memType
             },
           _ =>
-            report.info(
-              s"res type t: ${resType.tpe.show(using Printer.TypeReprStructure)}"
-            )
+            // report.info(
+            //   s"res type t: ${resType.tpe.show(using Printer.TypeReprStructure)}"
+            // )
             val effectiveResType    = resType
             val dealiasedResType    = resType.tpe.dealias
             val memberType          = traitTypeRepr.memberType(effectiveResType.symbol)
             val selectType          = traitTypeRepr.select(effectiveResType.symbol)
             val dealiasedSelectType = selectType.dealiasKeepOpaques
-            report.info(s"""
-            | trait: ${traitTypeRepr.show(using Printer.TypeReprAnsiCode)}
-            | effectiveResType: ${effectiveResType.show(using
-                            Printer.TreeAnsiCode
-                          )}
-            | dealiasedResType: ${dealiasedResType.show(using
-                            Printer.TypeReprAnsiCode
-                          )}
-            | selectType: ${selectType.show(using Printer.TypeReprAnsiCode)}
-            | dealiasedSelectType: ${dealiasedSelectType.show(using
-                            Printer.TypeReprAnsiCode
-                          )}
-            | memberType: ${memberType.show(using Printer.TypeReprAnsiCode)}
-            |""".stripMargin)
+            // report.info(s"""
+            // | trait: ${traitTypeRepr.show(using Printer.TypeReprAnsiCode)}
+            // | effectiveResType: ${effectiveResType.show(using
+            //                 Printer.TreeAnsiCode
+            //               )}
+            // | dealiasedResType: ${dealiasedResType.show(using
+            //                 Printer.TypeReprAnsiCode
+            //               )}
+            // | selectType: ${selectType.show(using Printer.TypeReprAnsiCode)}
+            // | dealiasedSelectType: ${dealiasedSelectType.show(using
+            //                 Printer.TypeReprAnsiCode
+            //               )}
+            // | memberType: ${memberType.show(using Printer.TypeReprAnsiCode)}
+            // |""".stripMargin)
 
             dealiasedSelectType
         )
