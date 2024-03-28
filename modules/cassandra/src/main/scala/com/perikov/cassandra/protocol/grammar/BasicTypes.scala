@@ -9,7 +9,7 @@ trait BasicTypes extends Any:
   type string = String
   type writeType
   type byte = Byte
-  type stringList
+  type stringList 
   type shortBytes
   type stringMultimap
   type stringMap

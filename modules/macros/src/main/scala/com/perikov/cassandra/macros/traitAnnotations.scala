@@ -1,7 +1,6 @@
 package com.perikov.cassandra.macros
 
 import scala.quoted.*
-import com.perikov.cassandra.protocol.*
 
 extension (expr: Any)
   transparent inline def dispatchTo[T](interpreter: T) = 

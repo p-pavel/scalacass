@@ -1,7 +1,8 @@
 package com.perikov.cassandra.protocol.grammar
+import com.perikov.cassandra.macros.*
 import java.nio.ByteBuffer
 
-trait Grammar extends Any, BasicTypes:
+trait Grammar extends  Any, BasicTypes:
   self =>
 
   type Self
@@ -32,6 +33,11 @@ trait Grammar extends Any, BasicTypes:
     b.get(bytes)
     String(bytes, "UTF-8")
 
+  given eventContent: events.Self = ???
+  given errorContent: errors.Self = ???
+  given resultContent: results.Self = ???
+  given responses.stringMultimap = ???
+
   
 
   given (using b: ByteBuffer): bytes = ???
@@ -56,7 +62,7 @@ trait Grammar extends Any, BasicTypes:
 
   def message(header: Header)(using rest: ByteBuffer): Self =
     // summon[bytes]
-    // header.dispatchTo(responses)
+    header.dispatchTo(responses)
     ???
 
   // def parse(using b: ByteBuffer): Self =

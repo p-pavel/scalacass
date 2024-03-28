@@ -17,5 +17,6 @@ trait SchemaChangeData extends Any, BasicTypes:
   def FUNCTION(keyspace: string, objectName: string, types: stringList): Self
 
   /** stands for modifications related to user defined aggregates */
-  def AGGREGATE(keyspace: string, objectName: string, types: stringList): Self
+  // def AGGREGATE(keyspace: string, objectName: string, types: stringList): Self
+
 end SchemaChangeData

@@ -1,4 +1,4 @@
-package com.perikov.cassandra.protocol
+package com.perikov.cassandra.macros
 
 import scala.annotation.StaticAnnotation
 
@@ -8,7 +8,3 @@ import scala.annotation.StaticAnnotation
   */
 class dispatchByMethodName   extends StaticAnnotation
 class dispatchBy[Annotation] extends StaticAnnotation
-
-class opcode(code: Byte)    extends StaticAnnotation
-class errorCode(code: Int)  extends StaticAnnotation
-class resultCode(code: Int) extends StaticAnnotation
