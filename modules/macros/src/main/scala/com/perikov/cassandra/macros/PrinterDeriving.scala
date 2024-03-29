@@ -14,7 +14,6 @@ def derivePrintingImpl[T: Type](using Quotes) =
   val traitTypeTree       = TypeTree.of[T]
   val allTraitMethods     = traitTypeRepr.typeSymbol.methodMembers
   val printerClassParents = List(TypeTree.of[Object], traitTypeTree)
-  
 
   def methodsToOverride(cls: Symbol) =
     allTraitMethods.map(s => traitTypeRepr.select(s).termSymbol.tree).collect {
@@ -29,34 +28,12 @@ def derivePrintingImpl[T: Type](using Quotes) =
           m =>
             params.collect { case ValDef(name, tpt, _) =>
               val sym = tpt.symbol
-              val memType = traitTypeRepr.select(sym)
-              // println(s"======== ${sym.isAbstractType}, ValDef $name: ${memType.show(using Printer.TypeReprStructure)}")
-              if sym.isAbstractType then memType else tpt.tpe
+              if sym.isAbstractType then traitTypeRepr.select(sym)
+              else tpt.tpe
             },
           _ =>
-            // report.info(
-            //   s"res type t: ${resType.tpe.show(using Printer.TypeReprStructure)}"
-            // )
-            val effectiveResType    = resType
-            val dealiasedResType    = resType.tpe.dealias
-            val memberType          = traitTypeRepr.memberType(effectiveResType.symbol)
-            val selectType          = traitTypeRepr.select(effectiveResType.symbol)
+            val selectType          = traitTypeRepr.select(resType.symbol)
             val dealiasedSelectType = selectType.dealiasKeepOpaques
-            // report.info(s"""
-            // | trait: ${traitTypeRepr.show(using Printer.TypeReprAnsiCode)}
-            // | effectiveResType: ${effectiveResType.show(using
-            //                 Printer.TreeAnsiCode
-            //               )}
-            // | dealiasedResType: ${dealiasedResType.show(using
-            //                 Printer.TypeReprAnsiCode
-            //               )}
-            // | selectType: ${selectType.show(using Printer.TypeReprAnsiCode)}
-            // | dealiasedSelectType: ${dealiasedSelectType.show(using
-            //                 Printer.TypeReprAnsiCode
-            //               )}
-            // | memberType: ${memberType.show(using Printer.TypeReprAnsiCode)}
-            // |""".stripMargin)
-
             dealiasedSelectType
         )
         Symbol.newMethod(cls, name, mtype, Flags.Override, Symbol.noSymbol)
