@@ -1,23 +1,23 @@
 package com.perikov.cassandra.protocol.grammar
 
-import com.perikov.cassandra.macros.derivePrinting
+import com.perikov.cassandra.macros.*
 import annotation.experimental
-trait Prt     extends SchemaChangeData{
-  override type Self = String
-  // override type string = String
-  override type stringList = Any
-
-  // def AGGREGATE(`keyspace₄`: string, `objectName₃`: string, types: stringList): Self 
-  // def FUNCTION(keyspace: string, objectName: string, types: stringList): Self
-  // def f(s: stringList): Self
+trait Prt extends SchemaChangeData {
+  override type Self       = String
+  override type stringList = string
 
 }
 
 @experimental
 class PrintChangeData extends munit.FunSuite:
   test("print change data") {
-    // val changeDataPrinter = derivePrinting[Prt]
+    val changeDataPrinter = derivePrinting[Prt]
+    val args              = Seq("ks", "obj", "types")
+    val it                = args.iterator;
 
-    // assertEquals(changeDataPrinter.AGGREGATE("ks", "obj", "types"), "AGGREGATE(ks, obj, types)")
+    inline given changeDataPrinter.string = it.next()
+
+    val res = "AGGREGATE".dispatcherByMethodName(changeDataPrinter)
+    assertEquals(res, "AGGREGATE" ++ args.mkString("(", ", ", ")"))
   }
 end PrintChangeData

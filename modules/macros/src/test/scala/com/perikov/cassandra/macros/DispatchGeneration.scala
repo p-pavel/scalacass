@@ -17,7 +17,7 @@ class DispatchGeneration extends munit.FunSuite:
   }
 
   test("annotation with type") {
-    class phony() extends scala.annotation.StaticAnnotation
+    class phony()            extends scala.annotation.StaticAnnotation
     class opcode(code: Byte) extends scala.annotation.StaticAnnotation
 
     @dispatchBy[opcode]
@@ -41,8 +41,8 @@ class DispatchGeneration extends munit.FunSuite:
 
     val t = new T {}
 
-    assertEquals(dispatcherByMethodName("abc", t), 42)
-    assertEquals(dispatcherByMethodName("cde", t), 3.141f)
+    assertEquals("abc".dispatcherByMethodName(t), 42)
+    assertEquals("cde".dispatcherByMethodName(t), 3.141f)
   }
 
 end DispatchGeneration

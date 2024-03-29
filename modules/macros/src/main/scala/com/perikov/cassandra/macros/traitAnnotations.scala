@@ -3,20 +3,21 @@ package com.perikov.cassandra.macros
 import scala.quoted.*
 
 extension (expr: Any)
-  transparent inline def dispatchTo[T](interpreter: T) = 
+  transparent inline def dispatchTo[T](interpreter: T) =
     generateDispatch(expr, interpreter)
 
 // TODO: I hate the amount of code here and duplication of concepts.
-// Probably use something like term deriving on annotation type to 
+// Probably use something like term deriving on annotation type to
 // find the implementation of generator
 
 transparent inline def generateDispatch[T](e: Any, interpreter: T) = ${
   traitAnnotationsImpl[T]('e, 'interpreter)
 }
 
-inline def dispatcherByMethodName[T](s: String, interpreter: T) = ${
-  dispatchByMethodNameImpl[T]('s, 'interpreter)
-}
+extension (s: String)
+  inline def dispatcherByMethodName[T](interpreter: T) = ${
+    dispatchByMethodNameImpl[T]('s, 'interpreter)
+  }
 
 def dispatchByMethodNameImpl[T: Type](s: Expr[String], interpreter: Expr[T])(
     using Quotes
@@ -42,17 +43,20 @@ private class DispatchGenerator[T: Type](
 
   def generateDispatchByMethodName =
     val dispatchBySymbol = TypeRepr.of[dispatchByMethodName].typeSymbol
-    val annotations      = annotationsWith(dispatchBySymbol)
-    if annotations.length != 1 then
-      report.warning(
-        s"Expected exactly one annotation of type dispatchByMethodName, found ${annotations.length}"
+
+    val annotatedBaseClassess = typeReprOfTargetTrait.baseClasses.filter(
+      _.annotations.exists(_.tpe.typeSymbol == dispatchBySymbol)
+    )
+    val methodsToDispatchBy = annotatedBaseClassess.flatMap(_.declaredMethods)
+    if methodsToDispatchBy.isEmpty then
+      report.errorAndAbort(
+        s"I didn't find any method to dispatch by for $targetTraitSymbol. Probably you forgot @${dispatchBySymbol} annotation"
       )
-    val declaredMethods  = targetTraitSymbol.declaredMethods
-    val cases            = declaredMethods.map(m =>
+    val cases               = methodsToDispatchBy.map(m =>
       CaseDef(
         Literal(StringConstant(m.name)),
         None,
-        callWithGivensImpl(interpreterTerm.select(m).asExpr).asTerm
+        callWithGivensImpl(interpreterTerm.select(m).etaExpand(Symbol.spliceOwner).asExpr).asTerm
       )
     )
     Match(selector.asTerm, cases).asExpr
@@ -93,11 +97,15 @@ private class DispatchGenerator[T: Type](
         None,
         callWithGivensImpl(
           try
-            interpreterTerm.select(methodSymbol).etaExpand(Symbol.spliceOwner).asExpr
-          catch case e: Exception =>
-            report.errorAndAbort(
-              s"Failed to select method ${methodSymbol.name} from interpreter: ${interpreterTerm}:\n${e.getMessage()}"
-            )
+            interpreterTerm
+              .select(methodSymbol)
+              .etaExpand(Symbol.spliceOwner)
+              .asExpr
+          catch
+            case e: Exception =>
+              report.errorAndAbort(
+                s"Failed to select method ${methodSymbol.name} from interpreter: ${interpreterTerm}:\n${e.getMessage()}"
+              )
         ).asTerm
       )
     )
