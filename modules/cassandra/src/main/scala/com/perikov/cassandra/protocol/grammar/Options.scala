@@ -3,8 +3,9 @@ import com.perikov.cassandra.protocol.*
 import com.perikov.cassandra.macros.dispatchByMethodName
 
 @dispatchByMethodName
-trait Options extends BasicTypes:
+trait Options:
   type Self
+  import BasicTypes.*
 
   /** the version of CQL to use. This option is mandatory and currently the only
     * version supported is "3.0.0". Note that this is different from the

@@ -4,8 +4,9 @@ import com.perikov.cassandra.protocol.*
 import com.perikov.cassandra.macros.dispatchBy
 
 @dispatchBy[opcode]
-trait Requests extends BasicTypes:
+trait Requests :
   type Self
+  import BasicTypes.*
 
   /** Initialize the connection. The server will respond by either a READY
     * message (in which case the connection is ready for queries) or an

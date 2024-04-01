@@ -2,8 +2,16 @@ package com.perikov.cassandra.protocol.grammar
 
 import com.perikov.cassandra.macros.*
 import annotation.experimental
-trait Prt extends SchemaChangeData {
+
+@dispatchByMethodName
+trait MySchemaChange:
+  type Self
+  type string
+  type stringList
+  def AGGREGATE(keyspace: string, objectName: string, types: stringList): Self
+trait Prt extends MySchemaChange {
   override type Self       = String
+  override type string     = String
   override type stringList = string
 
 }

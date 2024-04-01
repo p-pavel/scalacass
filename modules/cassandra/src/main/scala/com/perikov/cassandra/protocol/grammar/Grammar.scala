@@ -2,9 +2,10 @@ package com.perikov.cassandra.protocol.grammar
 import com.perikov.cassandra.macros.*
 import java.nio.ByteBuffer
 
-trait Grammar extends  Any, BasicTypes:
+trait Grammar extends  Any:
   self =>
 
+  import BasicTypes.*
   type Self
 
   val results: Results
@@ -36,19 +37,18 @@ trait Grammar extends  Any, BasicTypes:
   given eventContent: events.Self = ???
   given errorContent: errors.Self = ???
   given resultContent: results.Self = ???
-  given responses.stringMultimap = ???
+  given BasicTypes.stringMultimap = ???
 
   
+  type bytes = Array[Byte]
 
-  given (using b: ByteBuffer): bytes = ???
-    // TODO: IArray creation, nulls
-    // val len = b.getInt()
-    // if len >= 0 then
-    //   val bytes = new Array[Byte](len)
-    //   b.get(bytes)
-    //   bytes
-    //   len
-    // else 0
+  given (using b: ByteBuffer): bytes = 
+    val len = b.getInt()
+    if len >= 0 then
+      val bytes = new Array[Byte](len)
+      b.get(bytes)
+      bytes
+    else null 
 
   private def header(
       version: byte,
@@ -61,16 +61,14 @@ trait Grammar extends  Any, BasicTypes:
     opcode
 
   def message(header: Header)(using rest: ByteBuffer): Self =
-    // summon[bytes]
+    summon[bytes]
     // header.dispatchTo(responses)
     ???
 
-  // def parse(using b: ByteBuffer): Self =
-  //   val hdr = callWithGivens(header)
-  //   message(hdr)
+  def parse(using b: ByteBuffer): Self =
+    val hdr = callWithGivens(header)
+    message(hdr)
 
 end Grammar
 
-class decoders(using b: ByteBuffer) extends BasicTypes
 
-// transparent inline def decs(using  ByteBuffer) = new decoders

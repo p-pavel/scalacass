@@ -4,11 +4,12 @@ import com.perikov.cassandra.protocol.*
 import com.perikov.cassandra.macros.dispatchBy
 
 @dispatchBy[opcode]
-trait Responses extends Any, BasicTypes:
+trait Responses extends Any:
   type Self
   type EventContent
   type ResultContent
   type ErrorContent
+  import BasicTypes.*
 
   /** Indicates an error processing a request.
     *

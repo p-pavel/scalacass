@@ -17,9 +17,10 @@ import com.perikov.cassandra.macros.dispatchByMethodName
   * first.
   */
 @dispatchByMethodName
-trait Events extends Any,BasicTypes:
+trait Events extends Any:
   type ChangeData
   type Self
+  import BasicTypes.*
 
   /** events related to change in the cluster topology. Currently, events are
     * sent when new nodes are added to the cluster, and when nodes are removed.
@@ -53,5 +54,3 @@ trait Events extends Any,BasicTypes:
     */
   def SCHEMA_CHANGE(changeType: string, changeData: ChangeData): Self
 end Events
-
-

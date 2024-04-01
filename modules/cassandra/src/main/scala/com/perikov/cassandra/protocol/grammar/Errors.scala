@@ -4,8 +4,9 @@ import cas.protocol.*
 import cas.macros.dispatchBy
 
 @dispatchBy[errorCode]
-trait Errors extends Any, BasicTypes:
+trait Errors extends Any:
   type Self
+  import BasicTypes.*
 
   /** Server error: something unexpected happened. This indicates a server-side
     * bug.

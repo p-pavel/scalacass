@@ -32,7 +32,7 @@ private [macros] def callWithGivensImpl(func: Expr[Any])(using Quotes): Expr[Any
         case iss: ImplicitSearchSuccess => iss.tree
         case isf: ImplicitSearchFailure =>
           report.errorAndAbort(
-            s"Could not find implicit of type '${arg}' for parameter in ${func.show}: ${tpe}"
+            s"Could not find implicit of type '${arg.show(using Printer.TypeReprAnsiCode)}' for parameter in ${func.show}: ${tpe}"
           )
 
     val argsWithoutReturnType = tpe.typeArgs.dropRight(1).map(findImplicit)

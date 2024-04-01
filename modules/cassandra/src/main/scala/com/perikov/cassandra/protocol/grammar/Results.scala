@@ -6,8 +6,9 @@ import com.perikov.cassandra.macros.dispatchBy
 /** Defines the possible content of a [[RESULT]] message.
   */
 @dispatchBy[resultCode]
-trait Results extends Any, BasicTypes:
+trait Results extends Any:
   type Self
+  import BasicTypes.*
 
   /** results carrying no information. */
   @resultCode(0x0001)

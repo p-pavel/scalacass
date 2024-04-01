@@ -10,7 +10,7 @@ class PrinterDeriving extends munit.FunSuite:
   end Abc
 
   test("deriving printing") {
-    val a: Abc = derivePrinting[Abc]
+    val a = derivePrinting[Abc]
     assertEquals(a.f1(10, "s"), "f1(10, s)")
     assertEquals(a.f2(0f, "s"), "f2(0.0, s)")
   }

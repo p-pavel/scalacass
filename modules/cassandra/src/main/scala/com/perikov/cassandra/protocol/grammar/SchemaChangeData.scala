@@ -4,8 +4,9 @@ import com.perikov.cassandra.protocol.*
 import com.perikov.cassandra.macros.dispatchByMethodName
 
 @dispatchByMethodName
-trait SchemaChangeData extends Any, BasicTypes:
+trait SchemaChangeData extends Any:
   type Self
+  import BasicTypes.*
 
   def KEYSPACE(keyspace: string): Self
   
