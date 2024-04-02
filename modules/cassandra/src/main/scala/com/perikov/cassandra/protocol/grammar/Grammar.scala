@@ -1,8 +1,9 @@
 package com.perikov.cassandra.protocol.grammar
 import com.perikov.cassandra.macros.*
 import java.nio.ByteBuffer
+import scala.annotation.experimental
 
-trait Grammar extends  Any:
+trait Grammar extends Any:
   self =>
 
   import BasicTypes.*
@@ -34,21 +35,19 @@ trait Grammar extends  Any:
     b.get(bytes)
     String(bytes, "UTF-8")
 
-  given eventContent: events.Self = ???
-  given errorContent: errors.Self = ???
+  given eventContent: events.Self   = ???
+  given errorContent: errors.Self   = ???
   given resultContent: results.Self = ???
-  given BasicTypes.stringMultimap = ???
+  given BasicTypes.stringMultimap   = ???
 
-  
-  type bytes = Array[Byte]
-
-  given (using b: ByteBuffer): bytes = 
+  given (using b: ByteBuffer): bytes =
     val len = b.getInt()
     if len >= 0 then
       val bytes = new Array[Byte](len)
       b.get(bytes)
+
       bytes
-    else null 
+    else null
 
   private def header(
       version: byte,
@@ -61,9 +60,7 @@ trait Grammar extends  Any:
     opcode
 
   def message(header: Header)(using rest: ByteBuffer): Self =
-    summon[bytes]
-    // header.dispatchTo(responses)
-    ???
+    header.dispatchTo(responses)
 
   def parse(using b: ByteBuffer): Self =
     val hdr = callWithGivens(header)
@@ -71,4 +68,22 @@ trait Grammar extends  Any:
 
 end Grammar
 
-
+@experimental
+object GrammarPrinter extends Grammar:
+  type Self = String
+  trait SchemaPrinter   extends SchemaChangeData { type Self = String }
+  trait ErrorPrinter    extends Errors           { type Self = String }
+  trait EventsPrinter   extends Events           {
+    type Self = String; type ChangeData = String
+  }
+  trait ResponsePrinter extends Responses        {
+    type Self          = String; type ErrorContent = String; type EventContent = String;
+    type ResultContent = String
+  }
+  trait ResultPrinter   extends Results          { type Self = String }
+  val changeData: SchemaPrinter  = derivePrinting
+  val errors: ErrorPrinter       = derivePrinting
+  val events: EventsPrinter      = derivePrinting
+  val results: ResultPrinter     = derivePrinting
+  val responses: ResponsePrinter = derivePrinting
+end GrammarPrinter
