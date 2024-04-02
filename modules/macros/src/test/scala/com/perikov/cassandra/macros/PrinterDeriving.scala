@@ -58,6 +58,15 @@ class PrinterDeriving extends munit.FunSuite:
       type Arg2 = String
 
     val printer = derivePrinting[Speialized]
-    
+  }
+
+  test("no arg methods") {
+    trait T:
+      def f: String
+
+
+
+    val a = debugDerivePrinting[T]
+    assertEquals(a.f, "f")
   }
 end PrinterDeriving

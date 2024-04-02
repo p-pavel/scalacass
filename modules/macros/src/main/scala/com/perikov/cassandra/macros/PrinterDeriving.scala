@@ -30,10 +30,15 @@ import scala.annotation.experimental
   *   The implementation of `T`
   */
 @experimental
-transparent inline def derivePrinting[T]: T = ${ derivePrintingImpl[T] }
+transparent inline def derivePrinting[T]: T = ${ derivePrintingImpl[T](false) }
 
 @experimental
-def derivePrintingImpl[T: Type](using Quotes) =
+transparent inline def debugDerivePrinting[T]: T = ${
+  derivePrintingImpl[T](true)
+}
+
+@experimental
+def derivePrintingImpl[T: Type](debug: Boolean)(using Quotes) =
   import quotes.reflect.*
 
   val traitTypeRepr       = TypeRepr.of[T].dealias
@@ -50,18 +55,23 @@ def derivePrintingImpl[T: Type](using Quotes) =
             s"Only one parameter list is supported for method $name. Got ${paramClauses.size}"
           )
         val params = paramClauses.map(_.params).flatten
-        val mtype  = MethodType(params.map(_.name))(
-          m =>
-            params.collect { case ValDef(name, tpt, _) =>
-              val sym = tpt.symbol
-              if sym.isAbstractType then traitTypeRepr.select(sym)
-              else tpt.tpe
-            },
-          _ =>
-            val selectType          = traitTypeRepr.select(resType.symbol)
-            val dealiasedSelectType = selectType.dealiasKeepOpaques
-            dealiasedSelectType
-        )
+        val mtype  =
+          if paramClauses.isEmpty
+          then ByNameType(TypeRepr.of[String])
+          else
+            MethodType(params.map(_.name))(
+              m =>
+                params.collect { case ValDef(name, tpt, _) =>
+                  val sym = tpt.symbol
+                  if sym.isAbstractType then traitTypeRepr.select(sym)
+                  else tpt.tpe
+                }
+              ,
+              _ =>
+                val selectType          = traitTypeRepr.select(resType.symbol)
+                val dealiasedSelectType = selectType.dealiasKeepOpaques
+                dealiasedSelectType
+            )
         Symbol.newMethod(cls, name, mtype, Flags.Override, Symbol.noSymbol)
     }
 
@@ -77,8 +87,13 @@ def derivePrintingImpl[T: Type](using Quotes) =
       sym,
       args => {
         val methName = Expr(sym.name)
-        val argNames = Expr.ofList(args.head.map(_.asExpr))
-        Some('{ s"${$methName}(${$argNames.mkString(", ")})" }.asTerm)
+        val expr = 
+          if args.isEmpty then
+            '{ s"${$methName}" }
+          else 
+            val argNames = Expr.ofList(args.head.map(_.asExpr))
+            '{ s"${$methName}(${$argNames.mkString(", ")})" }
+        Some(expr.asTerm)
       }
     )
   )
