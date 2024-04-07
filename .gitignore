@@ -12,4 +12,7 @@ metals.sbt
 *.ipr
 *.iws
 .DS_Store
+karaf/
+.scala-build/
+profiler/
 
