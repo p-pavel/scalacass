@@ -26,6 +26,7 @@ trait Grammar extends Any:
 
   opaque type Header = byte
 
+    
   given (using b: ByteBuffer): byte   = b.get()
   given (using b: ByteBuffer): short  = b.getShort()
   given (using b: ByteBuffer): int    = b.getInt()
@@ -38,7 +39,18 @@ trait Grammar extends Any:
   given eventContent: events.Self   = ???
   given errorContent: errors.Self   = ???
   given resultContent: results.Self = ???
-  given BasicTypes.stringMultimap   = ???
+  given strList(using b: ByteBuffer): BasicTypes.stringList =
+    val len = summon[short]
+    Array.fill(len)(summon[string]).toSeq
+    
+  given (using b: ByteBuffer):BasicTypes.stringMultimap   = 
+    val kvCount = summon[short]
+    Array.fill(kvCount)(summon[BasicTypes.string] -> summon[BasicTypes.stringList]).toMap
+
+
+
+
+
 
   given (using b: ByteBuffer): bytes =
     val len = b.getInt()
@@ -56,7 +68,7 @@ trait Grammar extends Any:
       opcode: byte,
       length: int
   ): Header =
-    require(version == 0x85, s"Invalid protocol version: $version")
+    require((version & 0xFF)==  0x85, s"Invalid protocol version: $version")
     opcode
 
   def message(header: Header)(using rest: ByteBuffer): Self =
