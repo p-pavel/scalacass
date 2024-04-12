@@ -24,7 +24,7 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes):
           d
       }
 
-  private def generateClassSymbol: Symbol =
+  private lazy val generatedClassSymbol: Symbol =
     Symbol.newClass(
       Symbol.spliceOwner,
       derivedClassName,
@@ -36,21 +36,22 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes):
   private def overridenMethoSymbol(cls: Symbol)(
       methodToOverride: DefDef
   ): Symbol =
+    def unabstractTypeTree(tpt: TypeTree) =
+      val sym = tpt.symbol
+      if sym.isAbstractType then typeRepr.select(sym)
+      else tpt.tpe
+
+    val ret   = unabstractTypeTree(methodToOverride.returnTpt).dealiasKeepOpaques
     val mtype =
-      if methodToOverride.paramss.isEmpty then ByNameType(TypeRepr.of[String])
+      if methodToOverride.paramss.isEmpty then ByNameType(ret)
       else
         val params = methodToOverride.paramss.map(_.params).flatten
         MethodType(params.map(_.name))(
           m =>
             params.collect { case ValDef(name, tpt, _) =>
-              val sym = tpt.symbol
-              if sym.isAbstractType then typeRepr.select(sym)
-              else tpt.tpe
+              unabstractTypeTree(tpt)
             },
-          _ =>
-            typeRepr
-              .select(methodToOverride.returnTpt.symbol)
-              .dealiasKeepOpaques
+          _ => ret
         )
     Symbol.newMethod(
       cls,
@@ -60,30 +61,38 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes):
       Symbol.noSymbol
     )
 
-  private def overridenMethodDefinitions =
-    generateClassSymbol.declaredMethods.map(sym =>
-      DefDef(
-        sym,
-        args => {
-          val methName = Expr(sym.name)
-          val expr     =
-            if args.isEmpty then '{ s"${$methName}" }
-            else
-              val argNames = Expr.ofList(args.head.map(_.asExpr))
-              '{ s"${$methName}(${$argNames.mkString(", ")})" }
-          Some(expr.asTerm)
-        }
-      )
+  private def overridenPrinterMethod(sym: Symbol): DefDef =
+    DefDef(
+      sym,
+      args => {
+        val methName = Expr(sym.name)
+        val expr     =
+          if args.isEmpty then '{ s"${$methName}" }
+          else
+            val argNames = Expr.ofList(args.head.map(_.asExpr))
+            '{ s"${$methName}(${$argNames.mkString(", ")})" }
+        Some(expr.asTerm)
+      }
     )
 
   def generatePrinterImplementation: Expr[T] = generateClassInstantiation(
-    overridenMethodDefinitions
+    overridenPrinterMethod
   )
 
-  private def generateClassInstantiation(methodDefs: List[DefDef]): Expr[T] =
-    val classSymbol     = generateClassSymbol
+  def generateSerializerImplementation: Expr[T] = generateClassInstantiation(
+    overridenPrinterMethod
+  )
+
+  private def generateClassInstantiation(
+      methodDefs: Symbol => DefDef
+  ): Expr[T] =
+    val classSymbol     = generatedClassSymbol
     val printerClassDef =
-      ClassDef(classSymbol, implementationParents, methodDefs)
+      ClassDef(
+        classSymbol,
+        implementationParents,
+        generatedClassSymbol.declaredMethods.map(methodDefs)
+      )
 
     val classInstantiation = Typed(
       Apply(

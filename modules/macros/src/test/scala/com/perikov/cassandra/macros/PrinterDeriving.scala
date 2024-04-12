@@ -66,7 +66,7 @@ class PrinterDeriving extends munit.FunSuite:
 
 
 
-    val a = debugDerivePrinting[T]
+    val a = derivePrinting[T]
     assertEquals(a.f, "f")
   }
 end PrinterDeriving

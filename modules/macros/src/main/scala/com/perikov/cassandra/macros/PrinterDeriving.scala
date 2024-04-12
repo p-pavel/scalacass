@@ -3,10 +3,6 @@ package com.perikov.cassandra.macros
 import scala.quoted.*
 import scala.annotation.experimental
 
-/** Tries to derive serializer implementation */
-transparent inline def deriveSerializing[T]: T = ${ deriveSerializingImpl[T] }
-
-def deriveSerializingImpl[T: Type](using Quotes): Expr[T] = ???
 
 /** Tries to derive a printer implementation for trait T Can be used for
   * tagless-final style traits.
@@ -37,10 +33,6 @@ def deriveSerializingImpl[T: Type](using Quotes): Expr[T] = ???
 @experimental
 transparent inline def derivePrinting[T]: T = ${ derivePrintingImpl[T](false) }
 
-@experimental
-transparent inline def debugDerivePrinting[T]: T = ${
-  derivePrintingImpl[T](true)
-}
 
 @experimental
 def derivePrintingImpl[T: Type](debug: Boolean)(using q: Quotes) =
