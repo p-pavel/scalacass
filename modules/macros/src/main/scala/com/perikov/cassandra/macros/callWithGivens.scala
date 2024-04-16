@@ -25,8 +25,6 @@ private [macros] def callWithGivensImpl(func: Expr[Any])(using Quotes): Expr[Any
   val tpe  = term.tpe.widen
   if (!tpe.isFunctionType) then func
   else
-    val firstArg = tpe.typeArgs.head
-
     def findImplicit(arg: TypeRepr): Term =
       Implicits.search(arg) match
         case iss: ImplicitSearchSuccess => iss.tree
@@ -36,11 +34,11 @@ private [macros] def callWithGivensImpl(func: Expr[Any])(using Quotes): Expr[Any
           )
 
     val argsWithoutReturnType = tpe.typeArgs.dropRight(1).map(findImplicit)
-    val applySymbols          = tpe.typeSymbol.methodMember("apply")
+    val applySymbol          = tpe.typeSymbol.methodMember("apply")
     assert(
-      applySymbols.length == 1,
+      applySymbol.length == 1,
       s"Expected exactly one 'apply' method for function ${func.show}"
     )
     val application           =
-      term.select(applySymbols.head).appliedToArgs(argsWithoutReturnType)
+      term.select(applySymbol.head).appliedToArgs(argsWithoutReturnType)
     application.asExpr
