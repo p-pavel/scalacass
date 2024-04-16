@@ -2,7 +2,6 @@ package com.perikov.cassandra.macros
 
 import scala.annotation.experimental
 
-class opcode(c: Int) extends scala.annotation.StaticAnnotation
 
 
 trait Protocol:
