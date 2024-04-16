@@ -29,11 +29,11 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes):
       Symbol.spliceOwner,
       derivedClassName,
       implementationParents.map(_.tpe),
-      cls => candidatesForOverride.map(overridenMethoSymbol(cls)),
+      cls => candidatesForOverride.map(overridenMethodSymbol(cls)),
       None
     )
 
-  private def overridenMethoSymbol(cls: Symbol)(
+  private def overridenMethodSymbol(cls: Symbol)(
       methodToOverride: DefDef
   ): Symbol =
     def unabstractTypeTree(tpt: TypeTree) =
@@ -75,13 +75,57 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes):
       }
     )
 
-  def generatePrinterImplementation: Expr[T] = generateClassInstantiation(
-    overridenPrinterMethod
-  )
+  private def overridenSerializerMethod(sym: Symbol): DefDef =
+    DefDef(
+      sym,
+      args =>
+        val b = Block(
+          args.flatten.map { arg =>
+            val argName = arg.symbol.name
+            val argType = arg.symbol.info
+            val argExpr = arg.asExpr
 
-  def generateSerializerImplementation: Expr[T] = generateClassInstantiation(
-    overridenPrinterMethod
-  )
+            val neededWriterType = TypeRepr.of[Writer].appliedTo(List(argType))
+
+            val writer = Implicits.search(neededWriterType) match
+              case res: ImplicitSearchSuccess => res.tree
+
+              case failure: ImplicitSearchFailure =>
+                report.errorAndAbort(
+                  s"Cannot find an implicit Writer instance for type ${argType.show(
+                      using Printer.TypeReprAnsiCode
+                    )}. (Needed for argument $argName of method ${sym.name}: ${failure.explanation}"
+                )
+
+            val argTerm = arg match
+              case t: Term => t
+              case _       =>
+                report.errorAndAbort(
+                  s"Argument is not a term: ${arg.show(using Printer.TreeAnsiCode)}"
+                )
+
+            val writing = writer
+              .select(
+                TypeRepr
+                  .of[Function1[?, Unit]]
+                  .typeSymbol
+                  .methodMember("apply")
+                  .head
+              )
+              .appliedTo(argTerm)
+            Block(List(writing), '{ () }.asTerm)
+          },
+          '{ () }.asTerm
+        )
+
+        Some(b)
+    )
+
+  def generatePrinterImplementation: Expr[T] =
+    generateClassInstantiation(overridenPrinterMethod)
+
+  def generateSerializerImplementation: Expr[T] =
+    generateClassInstantiation(overridenSerializerMethod)
 
   private def generateClassInstantiation(
       methodDefs: Symbol => DefDef

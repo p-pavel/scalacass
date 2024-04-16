@@ -9,17 +9,19 @@ trait Protocol:
   def query1(a: Int, b: String): Unit
 
 
-trait Writer[T] extends (T => Unit)
 
 @experimental
 class SerializerDeriving extends munit.FunSuite: 
+
   test("Serializer deriving") {
     var serialized = Vector.empty[Any]
-    given [A]: Writer[A] with
-      def apply(a: A) = serialized = serialized :+ a
+    def append(a: Any) = serialized = serialized :+ a
+    given  Writer[Int] = append
+    given Writer[String] = append
+
 
     val p = deriveSerializer[Protocol]
     p.query1(42, "hello")
-    assertEquals(serialized, Vector(42))
+    assertEquals(serialized, Vector(42, "hello"))
   }
 
