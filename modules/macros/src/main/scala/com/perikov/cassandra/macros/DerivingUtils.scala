@@ -3,11 +3,37 @@ package com.perikov.cassandra.macros
 import scala.quoted.*
 import scala.annotation.experimental
 
+/** Conceptually this code is intended as an accessor to the information
+  * represented as `trait`. The trait gives us finite set of methods (not
+  * implemented or marked with annotation etc). each method gives us cartesian
+  * product of its arument.
+  * 
+  * So we have a disjoint union of product types.
+  *
+  * We can actually consider method as a record with named fields lying on the
+  * stack.
+  *
+  * The reason for the messy code is some messiveness of the underlying
+  * `quotes.reflect` API and the fact that this code has evolved as a series of
+  * experiments.
+  *
+  * @todo
+  *   This code needs heavy refactoring.
+  * 
+  * @todo multiple parameter lists handling is not yet implemented
+  *
+  * @note
+  *   the only reason for `@experimental` annotatation is the usage of
+  *   `Symbol.newClass` which is not yet stabilized. I can probably hack around
+  *   this but let's hope it will be stabilized soon.
+  * 
+  * @note public methods supposed to return values not dependent on the 
+  * `quotes.reflect` module in use, such as `Expr[T]`
+  */
 @experimental
-class DerivingUtils[T: Type](derivedClassName: String)(using Quotes):
+class DerivingUtils[T: Type](derivedClassName: String)(using Quotes) extends TraitUtils[T]:
   import quotes.reflect.*
-  private lazy val typeRepr = TypeRepr.of[T].dealias
-  private lazy val typeTree = TypeTree.of[T]
+
 
   private def implementationParents: List[TypeTree] =
     List(TypeTree.of[Object], typeTree)
@@ -76,6 +102,7 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes):
     )
 
   private def overridenSerializerMethod(sym: Symbol): DefDef =
+    val annotations = sym.getAnnotation(Symbol.requiredClass("designator"))
     DefDef(
       sym,
       args =>

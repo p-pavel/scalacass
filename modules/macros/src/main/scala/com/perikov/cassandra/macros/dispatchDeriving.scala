@@ -32,25 +32,21 @@ def traitAnnotationsImpl[T: Type](e: Expr[Any], interpreter: Expr[T])(using
 private class DispatchGenerator[T: Type](
     selector: Expr[Any],
     val interpreter: Expr[T]
-)(using val q: Quotes):
+)(using Quotes) extends TraitUtils[T]:
   import quotes.reflect.*
 
   val interpreterTerm            = interpreter.asTerm
-  val typeReprOfTargetTrait      = TypeRepr.of[T].dealias
-  val targetTraitSymbol          = typeReprOfTargetTrait.typeSymbol
-  def annotationsWith(s: Symbol) =
-    targetTraitSymbol.annotations.filter(_.tpe.typeSymbol == s)
 
   def generateDispatchByMethodName =
     val dispatchBySymbol = TypeRepr.of[dispatchByMethodName].typeSymbol
 
-    val annotatedBaseClassess = typeReprOfTargetTrait.baseClasses.filter(
+    val annotatedBaseClassess = typeRepr.baseClasses.filter(
       _.annotations.exists(_.tpe.typeSymbol == dispatchBySymbol)
     )
     val methodsToDispatchBy = annotatedBaseClassess.flatMap(_.declaredMethods)
     if methodsToDispatchBy.isEmpty then
       report.errorAndAbort(
-        s"I didn't find any method to dispatch by for $targetTraitSymbol. Probably you forgot @${dispatchBySymbol} annotation"
+        s"I didn't find any method to dispatch by for $targetSymbol. Probably you forgot @${dispatchBySymbol} annotation"
       )
     val cases               = methodsToDispatchBy.map(m =>
       CaseDef(
@@ -69,29 +65,12 @@ private class DispatchGenerator[T: Type](
 
     if annotations.length != 1 then
       report.errorAndAbort(
-        s"Expected exactly one annotation of type `dispatchBy` for $targetTraitSymbol, found ${annotations.length}"
+        s"Expected exactly one annotation of type `dispatchBy` for $targetSymbol, found ${annotations.length}"
       )
 
     val symbolToDispatchBy = annotations.head.tpe.typeArgs.head.typeSymbol
 
-    def extractAnnotationValue(t: Term) =
-      t match
-        case Apply(Select(New(_), _), List(arg)) => arg
-        case _                                   => report.errorAndAbort(s"Unexpected annotation $t")
-
-    val annotatedMethods: List[(Symbol, Term)] =
-      targetTraitSymbol.methodMembers.map { method =>
-        val annots =
-          method.annotations.filter(t => symbolToDispatchBy == t.tpe.typeSymbol)
-        if annots.length > 1 then
-          report.errorAndAbort(
-            s"Expected at most one annotation of type dispatchBy, found ${annots.length}"
-          )
-        if annots.isEmpty then None
-        else Option(method, extractAnnotationValue(annots.head))
-      }.flatten
-
-    val cases = annotatedMethods.map((methodSymbol, pattern) =>
+    val cases = annotatedMethods(symbolToDispatchBy).map((methodSymbol, pattern) =>
       CaseDef(
         pattern,
         None,
