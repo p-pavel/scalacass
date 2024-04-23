@@ -8,3 +8,4 @@ import scala.annotation.StaticAnnotation as A
   */
 class dispatchByMethodName   extends A
 class dispatchBy[Annotation] extends A
+class designator(b: Byte)    extends A

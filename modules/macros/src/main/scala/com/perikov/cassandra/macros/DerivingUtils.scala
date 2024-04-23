@@ -101,17 +101,16 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes) extends Tra
       }
     )
 
+
   private def overridenSerializerMethod(sym: Symbol): DefDef =
-    val annotations = sym.getAnnotation(Symbol.requiredClass("designator"))
+    val annotations = sym.getAnnotation(TypeRepr.of[designator].typeSymbol)
+    report.info(s"Annotations: ${annotations}")
     DefDef(
       sym,
       args =>
-        val b = Block(
-          args.flatten.map { arg =>
-            val argName = arg.symbol.name
+        val argsSerialisation = 
+          args.flatten.map { arg => 
             val argType = arg.symbol.info
-            val argExpr = arg.asExpr
-
             val neededWriterType = TypeRepr.of[Writer].appliedTo(List(argType))
 
             val writer = Implicits.search(neededWriterType) match
@@ -121,31 +120,24 @@ class DerivingUtils[T: Type](derivedClassName: String)(using Quotes) extends Tra
                 report.errorAndAbort(
                   s"Cannot find an implicit Writer instance for type ${argType.show(
                       using Printer.TypeReprAnsiCode
-                    )}. (Needed for argument $argName of method ${sym.name}: ${failure.explanation}"
+                    )}. (Needed for argument ${arg.symbol.name} of method ${sym.name}: ${failure.explanation}"
                 )
 
-            val argTerm = arg match
-              case t: Term => t
-              case _       =>
-                report.errorAndAbort(
-                  s"Argument is not a term: ${arg.show(using Printer.TreeAnsiCode)}"
-                )
+            val argTerm = arg.asInstanceOf[Term] 
 
-            val writing = writer
-              .select(
-                TypeRepr
-                  .of[Function1[?, Unit]]
-                  .typeSymbol
-                  .methodMember("apply")
-                  .head
-              )
-              .appliedTo(argTerm)
-            Block(List(writing), '{ () }.asTerm)
-          },
-          '{ () }.asTerm
-        )
+            writer
+            .select(
+              TypeRepr
+                .of[Function1[?, Unit]]
+                .typeSymbol
+                .methodMember("apply")
+                .head
+            )
+            .appliedTo(argTerm)
+          } 
+        
 
-        Some(b)
+        Some(Block(argsSerialisation,'{()}.asTerm))
     )
 
   def generatePrinterImplementation: Expr[T] =

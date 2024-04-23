@@ -2,7 +2,6 @@ package com.perikov.cassandra.macros
 
 import scala.annotation.experimental
 
-class designator(b: Byte) extends scala.annotation.StaticAnnotation
 @dispatchBy[designator]
 trait Protocol:
   @designator(1)
